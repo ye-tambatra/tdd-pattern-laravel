@@ -48,4 +48,28 @@ class AuthController extends Controller
             'user' => $user
         ]);
     }
+
+    public function register(Request $request)
+    {
+        $data = $request->validate([
+            'email' => 'required|email',
+            'name' => 'required|string',
+            'password' => 'required|string'
+        ]);
+
+        if (User::where('email', $data['email'])->exists()) {
+            return response()->json([
+                'message' => 'User with email already exists' . $data['email']
+            ], 409);
+        }
+
+        $user = new User;
+        $user->email = $data['email'];
+        $user->name = $data['name'];
+        $user->password = Hash::make($data['password']);
+        $user->email_verified_at = now();
+        $user->save();
+
+        return response()->json($user, 201);
+    }
 }
