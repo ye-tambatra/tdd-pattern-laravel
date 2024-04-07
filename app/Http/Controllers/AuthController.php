@@ -51,6 +51,16 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        return $this->registerUser($request, 'user');
+    }
+
+    public function registerAdmin(Request $request)
+    {
+        return $this->registerUser($request, 'admin');
+    }
+
+    private function registerUser(Request $request, $role = 'user')
+    {
         $data = $request->validate([
             'email' => 'required|email',
             'name' => 'required|string',
@@ -68,6 +78,7 @@ class AuthController extends Controller
         $user->name = $data['name'];
         $user->password = Hash::make($data['password']);
         $user->email_verified_at = now();
+        $user->role = $role;
         $user->save();
 
         return response()->json($user, 201);
