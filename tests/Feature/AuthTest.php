@@ -22,10 +22,11 @@ class AuthTest extends TestCase
             'password' => Hash::make($password)
         ]);
 
-        $response = $this->postJson('/api/auth/login', [
-            'email' => $email,
-            'password' => $password
-        ]);
+        $response = $this
+            ->postJson('/api/auth/login', [
+                'email' => $email,
+                'password' => $password
+            ]);
 
         $response
             ->assertOk()
@@ -34,21 +35,43 @@ class AuthTest extends TestCase
 
     public function test_it_unauthorizes_users_with_invalid_credentials()
     {
-        $response = $this->postJson('/api/auth/login', [
-            'email' => 'nonexistinguser@example.com',
-            'password' => 'dumbpassword'
+        User::factory()->create([
+            'email' => 'user@example.com',
+            'name' => 'user'
         ]);
 
+        // unprovided required credentials 
+        $response = $this
+            ->postJson('/api/auth/login');
+        $response->assertUnprocessable();
+
+        // email not found
+        $response = $this
+            ->postJson('/api/auth/login', [
+                'email' => 'dumbuser@example.com',
+                'password' => 'dumbpassword'
+            ]);
+        $response->assertNotFound();
+
+        // incorrect password
+        $response = $this
+            ->postJson('/api/auth/login', [
+                'email' => 'user@example.com',
+                'password' => 'dumbpassword'
+            ]);
         $response
             ->assertUnauthorized();
     }
 
-    public function test_only_authenticated_users_can_logout()
+    public function test_it_allows_only_authenticated_users_to_logout()
     {
-        $response = $this->postJson('/api/auth/logout');
+        // unauthenticated users
+        $response = $this
+            ->postJson('/api/auth/logout');
         $response
             ->assertUnauthorized();
 
+        // authenticated users
         $user = User::factory()->create();
         $token = $user->createToken('TOKEN_TEST')->plainTextToken;
 
