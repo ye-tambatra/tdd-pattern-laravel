@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +26,14 @@ Route::prefix('auth')->group(function () {
 
 Route::prefix('users')->group(function () {
     Route::delete('/{id}', [UserController::class, 'destroy'])->middleware(['auth:sanctum', 'role:user,admin,root']);
+});
+
+Route::prefix('posts')->group(function () {
+    Route::get('/', [PostController::class, 'index']);
+    Route::post('/', [PostController::class, 'store'])->middleware(['auth:sanctum', 'role:user']);
+    Route::put('/{id}', [PostController::class, 'update'])->middleware(['auth:sanctum', 'role:user,admin']);
+    Route::get('/{id}', [PostController::class, 'show']);
+    Route::delete('/{id}', [PostController::class, 'destroy']);
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
